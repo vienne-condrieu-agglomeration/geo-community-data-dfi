@@ -35,7 +35,7 @@ concurrency:
 env:
   INTEGRATOR_REPOSITORY: vienne-condrieu-agglomeration/geo-community-integrator-dfi
   # Version de l'intégrateur utilisée (tag) : à changer à la main, après avoir lu son CHANGELOG
-  INTEGRATOR_VERSION: v0.1.0
+  INTEGRATOR_VERSION: v0.2.0
 
 jobs:
   build:
