@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Données DFI</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+    code { background: rgba(127, 127, 127, .15); padding: .1em .3em; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Données DFI : filiation des parcelles</h1>
+  <p>
+    Un fichier JSON par commune, lu par les modules GEO de filiation des parcelles. Le fichier
+    <a href="index.json"><code>index.json</code></a> donne la situation publiée, le format et la liste des communes ;
+    chaque commune est dans <code>&lt;code INSEE&gt;.json</code>.
+  </p>
+  <h2>Source et licence</h2>
+  <p>
+    Données issues du jeu
+    <a href="https://www.data.gouv.fr/datasets/documents-de-filiation-informatises-dfi-des-parcelles">« Documents de filiation
+    informatisés (DFI) des parcelles »</a>, publié par la DGFiP sous
+    <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/">Licence Ouverte 2.0</a>. Elles sont converties sans
+    autre modification que leur mise en forme. La situation de référence figure dans <code>index.json</code>.
+  </p>
+  <h2>Limites</h2>
+  <p>L'historique commence vers 1988-1990, et les aménagements fonciers ruraux (remembrements) n'y figurent pas.</p>
+  <h2>Projet</h2>
+  <p>
+    Projet communautaire indépendant, non affilié à Business Geografic. Code de l'intégrateur :
+    <a href="https://github.com/vienne-condrieu-agglomeration/geo-community-integrator-dfi">geo-community-integrator-dfi</a>.
+  </p>
+</body>
+</html>

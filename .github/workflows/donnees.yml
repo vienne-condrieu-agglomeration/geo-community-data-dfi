@@ -1,0 +1,95 @@
+name: Données DFI
+
+# Télécharge la dernière situation des DFI sur data.gouv, la convertit avec integrator-dfi (un JSON par commune) et la
+# publie sur GitHub Pages. Rien n'est republié si la situation, le périmètre et le format n'ont pas changé : l'intégrateur
+# le détecte en comparant avec l'index.json déjà publié (code de sortie 10).
+#
+# Aucun jeton à configurer : le GITHUB_TOKEN automatique suffit pour déployer sur Pages, et l'intégrateur est un dépôt public.
+# Réglage requis une fois : Settings > Pages > Build and deployment > Source : GitHub Actions.
+on:
+  # Vérification hebdomadaire (le lundi) : la DGFiP publie une fois par trimestre (janvier, avril, juillet, octobre).
+  # GitHub désactive les workflows planifiés d'un dépôt public sans activité depuis 60 jours : après chaque situation
+  # trimestrielle, vérifier que la publication a eu lieu, et lancer le workflow à la main si besoin.
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      departments:
+        description: "Départements à publier, séparés par des espaces (défaut : variable DFI_DEPARTMENTS, sinon 38 69)"
+        required: false
+        type: string
+      force:
+        description: "Régénérer et republier même si la situation n'a pas changé"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Un seul déploiement à la fois, sans interrompre celui qui est en cours
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  INTEGRATOR_REPOSITORY: vienne-condrieu-agglomeration/geo-community-integrator-dfi
+  # Version de l'intégrateur utilisée (tag) : à changer à la main, après avoir lu son CHANGELOG
+  INTEGRATOR_VERSION: v0.1.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.convert.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ env.INTEGRATOR_REPOSITORY }}
+          ref: ${{ env.INTEGRATOR_VERSION }}
+          path: integrator
+      - uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+      # Index de la situation déjà publiée (absent à la toute première exécution)
+      - name: Récupérer l'index déjà publié
+        run: |
+          curl -fsS "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/index.json" \
+            -o previous-index.json || echo "Aucun index publié pour le moment"
+      - name: Télécharger et convertir
+        id: convert
+        env:
+          DEPARTMENTS: ${{ inputs.departments || vars.DFI_DEPARTMENTS || '38 69' }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          [[ "$DEPARTMENTS" =~ ^[0-9A-Za-z]+( [0-9A-Za-z]+)*$ ]] || { echo "::error::départements invalides : $DEPARTMENTS"; exit 1; }
+          args=(--departments $DEPARTMENTS --output site --cache "$RUNNER_TEMP/dfi" --previous-index previous-index.json --strict)
+          if [ "$FORCE" = "true" ]; then args+=(--force); fi
+          code=0
+          python3 -I integrator/integrator_dfi.py download "${args[@]}" || code=$?
+          case "$code" in
+            0)  echo "publish=true" >> "$GITHUB_OUTPUT"
+                cp public/index.html site/index.html ;;
+            10) echo "publish=false" >> "$GITHUB_OUTPUT"
+                echo "Données déjà à jour : rien à publier" ;;
+            *)  exit "$code" ;;
+          esac
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.convert.outputs.publish == 'true'
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v5
+        id: deployment

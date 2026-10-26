@@ -1,0 +1,15 @@
+# Mise à jour mensuelle des actions utilisées par le workflow : Dependabot ne fait que proposer une demande de fusion.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    assignees:
+      - "allfab"
+    groups:
+      actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci(deps)"
