@@ -49,7 +49,7 @@ jobs:
           repository: ${{ env.INTEGRATOR_REPOSITORY }}
           ref: ${{ env.INTEGRATOR_VERSION }}
           path: integrator
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       # Index de la situation déjà publiée (absent à la toute première exécution)
